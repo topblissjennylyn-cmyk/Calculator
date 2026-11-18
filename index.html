@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketplace Campaign Profitability Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#F05159; --coral-dk:#D63C44; --coral-lt:#FDE8E9;
+    --char:#231F20; --char-2:#4A4546; --mute:#8A8586;
+    --line:#E8E4E4; --bg:#F7F5F5; --card:#FFFFFF;
+    --green:#1F9D55; --green-lt:#E3F5EA; --amber:#C98500; --amber-lt:#FFF4D6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--char);-webkit-font-smoothing:antialiased}
+  header{background:var(--char);color:#fff;padding:22px 24px 20px;border-bottom:4px solid var(--coral)}
+  .wrap{max-width:1040px;margin:0 auto}
+  header .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);font-weight:700}
+  header h1{margin:4px 0 2px;font-size:24px;font-weight:800}
+  header p{margin:0;color:#BDB8B9;font-size:13px}
+  main{padding:22px 24px 40px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px}
+  .card h2{margin:0 0 12px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--char-2);font-weight:700;display:flex;align-items:center;gap:8px}
+  .card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--coral)}
+  .field{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:0}
+  .field label{font-size:14px;font-weight:600}
+  .field small{display:block;font-weight:400;color:var(--mute);font-size:12px;margin-top:2px}
+  .inp{display:flex;align-items:center;gap:6px}
+  input[type=number]{width:120px;padding:9px 10px;border:1.5px solid var(--line);border-radius:9px;font:600 15px Inter,sans-serif;color:var(--char);text-align:right;background:#fff}
+  input[type=number]:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-lt)}
+  .toggle{display:inline-flex;border:1.5px solid var(--line);border-radius:9px;overflow:hidden}
+  .toggle button{border:0;background:#fff;padding:8px 11px;font:700 13px Inter,sans-serif;color:var(--mute);cursor:pointer}
+  .toggle button.on{background:var(--coral);color:#fff}
+  .locked{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+  .lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--mute);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 8px}
+  .calc-note{font-size:12px;color:var(--mute);margin-top:4px;text-align:right}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:8px 4px;border-top:1px solid var(--line)}
+  td.amt{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+  td.pct{text-align:right;color:var(--mute);width:70px;font-variant-numeric:tabular-nums}
+  tr.sub td{font-weight:700;background:var(--bg)}
+  tr.less td:first-child{padding-left:16px}
+  tr.hd td{color:var(--coral);font-weight:700;border-top:0;padding-top:14px;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  .result{margin-top:18px;border-radius:14px;padding:20px;display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;align-items:center;border:2px solid}
+  @media(max-width:820px){.result{grid-template-columns:1fr 1fr}.verdict{grid-column:1/-1}}
+  .result .lbl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+  .result .big{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:4px}
+  .verdict .v{font-size:18px;font-weight:800}
+  .verdict .d{font-size:13px;margin-top:4px;opacity:.85}
+  .r-loss{background:var(--coral-lt);border-color:var(--coral);color:var(--coral-dk)}
+  .r-thin{background:var(--amber-lt);border-color:var(--amber);color:#8A5B00}
+  .r-good{background:var(--green-lt);border-color:var(--green);color:#146C3A}
+  .room{margin-top:18px}
+  .room .row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:820px){.room .row{grid-template-columns:1fr}}
+  .stat{background:var(--bg);border-radius:10px;padding:12px 14px}
+  .stat .k{font-size:12px;color:var(--mute);font-weight:600}
+  .stat .n{font-size:20px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:12px;color:var(--char-2);margin-top:2px}
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{border:0;border-radius:9px;padding:10px 16px;font:700 14px Inter,sans-serif;cursor:pointer}
+  .btn.primary{background:var(--coral);color:#fff}
+  .btn.primary:hover{background:var(--coral-dk)}
+  .btn.ghost{background:#fff;color:var(--char);border:1.5px solid var(--line)}
+  .toast{font-size:13px;color:var(--green);font-weight:600;align-self:center;opacity:0;transition:opacity .2s}
+  .rules{font-size:12px;color:var(--mute);margin-top:18px;line-height:1.6}
+  .rules b{color:var(--char-2)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">TopBliss · EaseBrew · DTC Marketplace</div>
+  <h1>Campaign Profitability Calculator</h1>
+  <p>I-compute muna ang kita bago sumali sa campaign. COGS, platform fees at opex ay naka-lock.</p>
+</div></header>
+
+<main><div class="wrap">
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2><span class="dot"></span>Encode ng Team</h2>
+
+      <div class="field">
+        <label>Selling Price (Gross Sales)<small>Presyo per order bago voucher</small></label>
+        <div class="inp">₱ <input type="number" id="price" value="379" min="0" step="1"></div>
+      </div>
+
+      <div class="field">
+        <label>Quantity (pouches)<small>Ilang pouch sa isang order</small></label>
+        <div class="inp"><input type="number" id="qty" value="1" min="1" step="1"></div>
+      </div>
+
+      <div class="field">
+        <label>Vouchers / Discount<small>Seller-funded na voucher sa campaign</small></label>
+        <div>
+          <div class="inp">
+            <div class="toggle" data-for="vou"><button data-m="peso" class="on">₱</button><button data-m="pct">%</button></div>
+            <input type="number" id="vou" value="0" min="0" step="1">
+          </div>
+          <div class="calc-note" id="vouNote"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Ads &amp; Promotions<small>Ad spend o campaign fee per order</small></label>
+        <div>
+          <div class="inp">
+            <div class="toggle" data-for="ads"><button data-m="peso" class="on">₱</button><button data-m="pct">%</button></div>
+            <input type="number" id="ads" value="0" min="0" step="1">
+          </div>
+          <div class="calc-note" id="adsNote"></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:18px"><span class="dot" style="background:var(--char)"></span>Fixed — hindi ginagalaw</h2>
+      <div class="field">
+        <label>Cost of Goods Sold<small>₱157 per pouch</small></label>
+        <div class="locked"><span id="lkCogs">₱157.00</span><span class="lock">🔒 Locked</span></div>
+      </div>
+      <div class="field">
+        <label>Fees &amp; Charges<small>30% ng gross sales</small></label>
+        <div class="locked"><span id="lkFees">₱0.00</span><span class="lock">🔒 30%</span></div>
+      </div>
+      <div class="field">
+        <label>Opex<small>5% ng gross sales</small></label>
+        <div class="locked"><span id="lkOpex">₱0.00</span><span class="lock">🔒 5%</span></div>
+      </div>
+    </div>
+
+    <!-- P&L -->
+    <div class="card">
+      <h2><span class="dot"></span>Profit &amp; Loss per Order</h2>
+      <table>
+        <tr><td>Gross Sales</td><td class="amt" id="tGross"></td><td class="pct">100%</td></tr>
+        <tr class="hd"><td colspan="3">Less</td></tr>
+        <tr class="less"><td>Cost of Goods Sold</td><td class="amt" id="tCogs"></td><td class="pct" id="pCogs"></td></tr>
+        <tr class="less"><td>Vouchers</td><td class="amt" id="tVou"></td><td class="pct" id="pVou"></td></tr>
+        <tr class="less"><td>Ads &amp; Promotions</td><td class="amt" id="tAds"></td><td class="pct" id="pAds"></td></tr>
+        <tr class="less"><td>Fees &amp; Charges</td><td class="amt" id="tFees"></td><td class="pct">30%</td></tr>
+        <tr class="less"><td>Opex</td><td class="amt" id="tOpex"></td><td class="pct">5%</td></tr>
+        <tr class="sub"><td>Total Expenses</td><td class="amt" id="tExp"></td><td class="pct" id="pExp"></td></tr>
+        <tr class="sub"><td>Net Income</td><td class="amt" id="tNet"></td><td class="pct" id="pNet"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="result">
+    <div><div class="lbl">Net Income</div><div class="big" id="rNet"></div></div>
+    <div><div class="lbl">Net Income %</div><div class="big" id="rPct"></div></div>
+    <div class="verdict"><div class="v" id="rV"></div><div class="d" id="rD"></div></div>
+  </div>
+
+  <!-- ROOM -->
+  <div class="card room">
+    <h2><span class="dot"></span>Hanggang saan pwede?</h2>
+    <div class="row">
+      <div class="stat"><div class="k">Max voucher para breakeven</div><div class="n" id="mxBE"></div><div class="s" id="mxBEs"></div></div>
+      <div class="stat"><div class="k">Max voucher para 10% net</div><div class="n" id="mx10"></div><div class="s" id="mx10s"></div></div>
+      <div class="stat"><div class="k">Profit kada 100 orders</div><div class="n" id="p100"></div><div class="s">Sa kasalukuyang setup</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="copy">Copy result para sa GC</button>
+      <button class="btn ghost" id="reset">Reset</button>
+      <span class="toast" id="toast">Na-copy na!</span>
+    </div>
+  </div>
+
+  <div class="rules">
+    <b>Paano kinocompute:</b> Fees (30%) at Opex (5%) ay base sa Gross Sales. Kapag naka-% ang voucher o ads, % din ng Gross Sales.
+    COGS = ₱157 × quantity. Net Income = Gross Sales − (COGS + Vouchers + Ads + Fees + Opex).
+    Ang "max voucher" ay kasama na ang ads na naka-encode.
+  </div>
+</div></main>
+
+<script>
+const COGS_UNIT=157, FEE=0.30, OPEX=0.05;
+const mode={vou:'peso',ads:'peso'};
+const $=id=>document.getElementById(id);
+const peso=n=>(n<0?'-':'')+'₱'+Math.abs(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=n=>(isFinite(n)?(n*100).toFixed(2):'0.00')+'%';
+const num=id=>Math.max(0,parseFloat($(id).value)||0);
+
+document.querySelectorAll('.toggle').forEach(t=>{
+  t.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    t.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); mode[t.dataset.for]=b.dataset.m; calc();
+  }));
+});
+['price','qty','vou','ads'].forEach(id=>$(id).addEventListener('input',calc));
+
+let last={};
+function calc(){
+  const qty=Math.max(1,Math.round(num('qty')));
+  const gross=num('price');
+  const cogs=COGS_UNIT*qty;
+  const vou = mode.vou==='pct' ? gross*num('vou')/100 : num('vou');
+  const ads = mode.ads==='pct' ? gross*num('ads')/100 : num('ads');
+  const fees=gross*FEE, opex=gross*OPEX;
+  const exp=cogs+vou+ads+fees+opex;
+  const net=gross-exp;
+  const np=gross>0?net/gross:0;
+  const r=x=>gross>0?pct(x/gross):'—';
+
+  $('vouNote').textContent = mode.vou==='pct' ? '= '+peso(vou) : '= '+r(vou)+' ng gross';
+  $('adsNote').textContent = mode.ads==='pct' ? '= '+peso(ads) : '= '+r(ads)+' ng gross';
+  $('lkCogs').textContent=peso(cogs); $('lkFees').textContent=peso(fees); $('lkOpex').textContent=peso(opex);
+
+  $('tGross').textContent=peso(gross);
+  $('tCogs').textContent=peso(cogs); $('pCogs').textContent=r(cogs);
+  $('tVou').textContent=peso(vou);  $('pVou').textContent=r(vou);
+  $('tAds').textContent=peso(ads);  $('pAds').textContent=r(ads);
+  $('tFees').textContent=peso(fees); $('tOpex').textContent=peso(opex);
+  $('tExp').textContent=peso(exp); $('pExp').textContent=r(exp);
+  $('tNet').textContent=peso(net); $('pNet').textContent=r(net);
+  $('rNet').textContent=peso(net); $('rPct').textContent=gross>0?pct(np):'—';
+
+  const box=$('result'); box.className='result';
+  let v,d;
+  if(net<0){box.classList.add('r-loss');v='❌ Lugi — huwag sumali';d='Bawat order ay talo ng '+peso(-net)+'. Bawasan ang voucher/ads o taasan ang presyo.';}
+  else if(np<0.10){box.classList.add('r-thin');v='⚠️ Pasok pero manipis';d='Hindi lugi, pero mababa sa 10% net. Sumali lang kung may volume o strategic na dahilan.';}
+  else{box.classList.add('r-good');v='✅ Pasok — pwedeng sumali';d='Kumikita ng '+pct(np)+' kada order.';}
+  $('rV').textContent=v; $('rD').textContent=d;
+
+  // Room: max voucher (₱) given current ads
+  const base=gross-cogs-ads-fees-opex;
+  const mBE=base, m10=base-0.10*gross;
+  const show=(m,el,els)=>{
+    if(m<=0){$(el).textContent='₱0.00';$(els).textContent='Walang room kahit walang voucher';}
+    else{$(el).textContent=peso(m);$(els).textContent=gross>0?'o '+pct(m/gross)+' ng gross':'';}
+  };
+  show(mBE,'mxBE','mxBEs'); show(m10,'mx10','mx10s');
+  $('p100').textContent=peso(net*100);
+  last={gross,qty,vou,ads,cogs,fees,opex,exp,net,np,v};
+}
+
+$('copy').addEventListener('click',async()=>{
+  const L=last;
+  const txt=`MARKETPLACE CAMPAIGN CHECK
+Selling price: ${peso(L.gross)} (${L.qty} pouch)
+Voucher: ${peso(L.vou)} | Ads: ${peso(L.ads)}
+COGS: ${peso(L.cogs)} | Fees 30%: ${peso(L.fees)} | Opex 5%: ${peso(L.opex)}
+Total expenses: ${peso(L.exp)}
+NET INCOME: ${peso(L.net)} (${pct(L.np)})
+Verdict: ${L.v}`;
+  try{await navigator.clipboard.writeText(txt);$('toast').style.opacity=1;setTimeout(()=>$('toast').style.opacity=0,1600);}
+  catch(e){$('toast').textContent='Hindi ma-copy, i-screenshot na lang';$('toast').style.opacity=1;}
+});
+$('reset').addEventListener('click',()=>{
+  $('price').value=379;$('qty').value=1;$('vou').value=0;$('ads').value=0;
+  document.querySelectorAll('.toggle').forEach(t=>{t.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===0));mode[t.dataset.for]='peso';});
+  calc();
+});
+calc();
+</script>
+</body>
+</html>
